@@ -4,6 +4,7 @@ import 'package:vibration/vibration.dart';
 import 'dart:async';
 import 'dart:math';
 import 'config/config.dart';
+import 'config/mixin_functions.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,7 +29,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, MixinFunctions {
 
   Timer _timer;
   int _start = game_length;
@@ -204,6 +205,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     startTimer();
 
   }
+  void _applyGame(){
+    showToastMessages("Your game is applied");
+
+  }
 
   @override
   void initState() {
@@ -212,224 +217,182 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
 
-
-
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
+    return WillPopScope(
+      onWillPop: doubleTapToQuit,
+      child: Scaffold(
+        key: scaffoldKey,
 //      appBar: AppBar(),
-      body: Column(
-        children: <Widget>[
+        body: Column(
+          children: <Widget>[
 
-          // height: 0.10,
-          SizedBox(height: MediaQuery.of(context).size.height * 0.10,),
+            // height: 0.10,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.10,),
 
-          // height: 0.20,
-          Container(
-            height: MediaQuery.of(context).size.height * 0.20,
-            color: Colors.amber,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                RaisedButton(
-                  child: Text("Shuffle List"),
-                  onPressed: () {
-                    _shuffleList();
-                  },
-                ),
+            // height: 0.20,
+            Container(
+              height: MediaQuery.of(context).size.height * 0.20,
+              color: Colors.amber,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  RaisedButton(
+                    child: Text("Shuffle List"),
+                    onPressed: () {
+                      _shuffleList();
+                    },
+                  ),
 
-                SizedBox(width: 25,),
+                  SizedBox(width: 25,),
 
-                RaisedButton(
-                  child: Text("Replay Game"),
-                  onPressed: () {
-                    _resetGame();
-                  },
-                ),
+                  RaisedButton(
+                    child: Text("Replay Game"),
+                    onPressed: () {
+                      _resetGame();
+                    },
+                  ),
 
-                SizedBox(width: 25,),
+                  SizedBox(width: 25,),
 
-                RaisedButton(
-                  child: Text("New Game"),
-                  onPressed: () {
-                    _startGame();
-                  },
-                ),
+                  RaisedButton(
+                    child: Text("New Game"),
+                    onPressed: () {
+                      _startGame();
+                    },
+                  ),
 
-                SizedBox(width: 25,),
+                  SizedBox(width: 25,),
 
-                Text("$_start", style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.normal, color: timerColor),),
+                  Text("$_start", style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.normal, color: timerColor),),
 
-                SizedBox(width: 25,),
+                  SizedBox(width: 25,),
 
-                RaisedButton(
-                  child: Text("Apply"),
-                  onPressed: () {
-                    _startGame();
-                  },
-                ),
+                  RaisedButton(
+                    child: Text("Apply"),
+                    onPressed: () {
+                      _applyGame();
+                    },
+                  ),
 
-              ],
+                ],
+              ),
             ),
-          ),
-
-//          // height: 0.20,
-//          Container(
-//            height: MediaQuery.of(context).size.height * 0.20,
-//            child: ListView.builder(
-//                scrollDirection: Axis.horizontal,
-//                itemCount: letterList.length,
-//                itemBuilder: (BuildContext context, int index) {
-//                  return Padding(
-//                    padding: const EdgeInsets.all(2.0),
-//                    child: Draggable(
-//                      data: letterIndexList[index],
-//                      child: Container(
-//                        width: 60.0,
-//                        height: 60.0,
-//                        child: Center(
-//                          child: Text(
-//                            letterList[index],
-//                            style:
-//                            TextStyle(color: Colors.white, fontSize: 45.0),
-//                          ),
-//                        ),
-//                        color:
-//                        letterSelected[index] == 0
-//                        ? Colors.pink
-//                        : Colors.white,
-//                      ),
-//                      feedback: Container(
-//                        width: 30.0,
-//                        height: 30.0,
-//                        child: Center(
-//                          child: Text(
-//                            letterList[index],
-//                            style:
-//                            TextStyle(color: Colors.white, fontSize: 22.0),
-//                          ),
-//                        ),
-//                        color: Colors.amber,
-//                      ),
-//                    ),
-//                  );
-//                }),
-//          ),
 
 
-          // height: 0.20,
-          Container(
-            height: MediaQuery.of(context).size.height * 0.20,
-            child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: letterList2.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: letterList2[index].letterStatus == 0
-                      ? Draggable(
-                      onDragCompleted: (){
-                        setState(() {
-                          if (dragCompleted == true) {
-                            letterList2[index].letterStatus = 1;
-                            dragCompleted = false;
-                          }
-                        });
-                      },
-                      data: letterList2[index].alphabetIndex,
-                      child: Container(
+
+            // height: 0.20,
+            Container(
+              height: MediaQuery.of(context).size.height * 0.20,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: letterList2.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: letterList2[index].letterStatus == 0
+                        ? Draggable(
+                        onDragCompleted: (){
+                          setState(() {
+                            if (dragCompleted == true) {
+                              letterList2[index].letterStatus = 1;
+                              dragCompleted = false;
+                            }
+                          });
+                        },
+                        data: letterList2[index].alphabetIndex,
+                        child: Container(
+                          width: 60.0,
+                          height: 60.0,
+                          child: Center(
+                            child: Text(
+                              letterList2[index].letter,
+                              style:
+                              TextStyle(color: Colors.white, fontSize: 45.0),
+                            ),
+                          ),
+                          color:
+                          letterList2[index].letterStatus == 0
+                              ? Colors.pink
+                              : Colors.white,
+                        ),
+                        feedback: Container(
+                          width: 30.0,
+                          height: 30.0,
+                          child: Center(
+                            child: Text(
+                              letterList2[index].letter,
+                              style:
+                              TextStyle(color: Colors.white, fontSize: 22.0),
+                            ),
+                          ),
+                          color: Colors.amber,
+                        ),
+                      )
+                        : Container(
                         width: 60.0,
                         height: 60.0,
                         child: Center(
                           child: Text(
-                            letterList2[index].letter,
+                            "",
                             style:
                             TextStyle(color: Colors.white, fontSize: 45.0),
                           ),
                         ),
-                        color:
-                        letterList2[index].letterStatus == 0
-                            ? Colors.pink
-                            : Colors.white,
+                        color:Colors.grey,
                       ),
-                      feedback: Container(
-                        width: 30.0,
-                        height: 30.0,
-                        child: Center(
-                          child: Text(
-                            letterList2[index].letter,
-                            style:
-                            TextStyle(color: Colors.white, fontSize: 22.0),
-                          ),
-                        ),
-                        color: Colors.amber,
-                      ),
-                    )
-                      : Container(
-                      width: 60.0,
-                      height: 60.0,
-                      child: Center(
-                        child: Text(
-                          "",
-                          style:
-                          TextStyle(color: Colors.white, fontSize: 45.0),
-                        ),
-                      ),
-                      color:Colors.grey,
-                    ),
-                  );
-                }),
-          ),
+                    );
+                  }),
+            ),
 
 
-          // height: 0.30,
-          SizedBox(height: MediaQuery.of(context).size.height * 0.30,),
+            // height: 0.30,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.30,),
 
-          // height: 0.20,
-          Container(
-            height: MediaQuery.of(context).size.height * 0.20,
-            child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: board.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: DragTarget(
-                      builder:
-                          (context, List<int> candidateData, rejectedData) {
+            // height: 0.20,
+            Container(
+              height: MediaQuery.of(context).size.height * 0.20,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: board.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: DragTarget(
+                        builder:
+                            (context, List<int> candidateData, rejectedData) {
 
 
-                        return Container(
-                          width: 60.0,
-                          height: 60.0,
-                          child: Center(child: Text(board[index], style: TextStyle(color: Colors.black, fontSize: 45.0),)),
-                          color: Colors.amber,
-                        );
-                      },
-                      onWillAccept: (data) {
-                        return true;
-                      },
-                      onAccept: (data) {
-                        setState(() {
-                          board[index] =alphabet[data];
-                          print(data);
+                          return Container(
+                            width: 60.0,
+                            height: 60.0,
+                            child: Center(child: Text(board[index], style: TextStyle(color: Colors.black, fontSize: 45.0),)),
+                            color: Colors.amber,
+                          );
+                        },
+                        onWillAccept: (data) {
+                          return true;
+                        },
+                        onAccept: (data) {
+                          setState(() {
+                            board[index] =alphabet[data];
+                            print(data);
 //                          letterSelected[data] = 1;
 //                        letterList2[2].letterStatus = 1;
-                          dragCompleted = true;
+                            dragCompleted = true;
 
-                        });
+                          });
 
-                      },
-                    ),
-                  );
-                }),
-          ),
+                        },
+                      ),
+                    );
+                  }),
+            ),
 
 
 
-        ],
+          ],
+        ),
       ),
     );
   }
