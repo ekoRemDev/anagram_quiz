@@ -1,6 +1,9 @@
-import 'dart:math';
-
+import 'package:anagram_quiz/letter.dart';
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
+import 'dart:async';
+import 'dart:math';
+import 'config/config.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,6 +29,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+
+  Timer _timer;
+  int _start = game_length;
+  Color timerColor = timerControlColors00;
+
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timer = new Timer.periodic(
+      oneSec,
+          (Timer timer) => setState(
+            () {
+          if (_start < 1) {
+            timer.cancel();
+          } else {
+            _start = _start - 1;
+
+            if(_start == 0 ){
+
+              // game over vibration
+              Vibration.vibrate(duration: 300);
+
+            }
+
+          }
+        },
+      ),
+    );
+  }
+
+
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
   var alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
@@ -36,9 +69,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<String> letterList = [];
   List<int> letterIndexList = [];
+  List<int> letterSelected = [];
   List<String> solution = [];
   List<int> solutionIndexList = [];
   List<String> board = [];
+
+  List<Letter> letterList2 = [];
+  bool dragCompleted = false;
 
   void generateWord(){
     var rng = new Random();
@@ -58,6 +95,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     for (int i=0; i<letterList.length;i++) {
       for (int j = 0 ; j< alphabet.length; j++) {
         if(letterList[i] == alphabet[j])
+
+
+          letterList2.add(new Letter(letter: letterList[i], alphabetIndex: j,letterStatus: 0));
+
+
           solutionIndexList.add(j);
       }
     }
@@ -65,10 +107,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     for (int i=0; i<letterList.length;i++) {
       board.add("*");
+      letterSelected.add(0);
     }
 
-    print("----index list is-----");
-    print(letterIndexList);
+
+//    print("----index list is-----");
+//    print(letterIndexList);
 
     _shuffleList();
   }
@@ -80,8 +124,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void _shuffleList() {
+//    setState(() {
+//      letterList.shuffle();
+//
+//      letterIndexList.clear();
+//
+//      for (int i=0; i<letterList.length;i++) {
+//        for (int j = 0 ; j< alphabet.length; j++) {
+//          if(letterList[i] == alphabet[j])
+//            letterIndexList.add(j);
+//            letterSelected.add(letterSelected[j]);
+//        }
+//      }
+//
+//
+//
+//
+//    });
+
     setState(() {
-      letterList.shuffle();
+      letterList2.shuffle();
 
       letterIndexList.clear();
 
@@ -89,19 +151,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         for (int j = 0 ; j< alphabet.length; j++) {
           if(letterList[i] == alphabet[j])
             letterIndexList.add(j);
+          letterSelected.add(letterSelected[j]);
         }
       }
+
+
 
 
     });
   }
 
-  void _resetGame(){
+  void _startGame(){
     letterList.clear();
     letterIndexList.clear();
+    letterSelected.clear();
     solution.clear();
     solutionIndexList.clear();
     board.clear();
+
+    letterList2.clear();
+
 
     generateWord();
     if (questionWord != null) {
@@ -109,12 +178,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       createSolution(questionWord);
     }
 
+
+    startTimer();
+
+  }
+
+  void _resetGame(){
+    letterList.clear();
+    letterIndexList.clear();
+    letterSelected.clear();
+    solution.clear();
+    solutionIndexList.clear();
+    board.clear();
+
+    letterList2.clear();
+
+
+//    generateWord();
+    if (questionWord != null) {
+      createListFromSentences(questionWord);
+      createSolution(questionWord);
+    }
+
+
+    startTimer();
+
   }
 
   @override
   void initState() {
     super.initState();
-    _resetGame();
+    _startGame();
   }
 
 
@@ -146,59 +240,149 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   },
                 ),
 
-                SizedBox(width: 15,),
+                SizedBox(width: 25,),
 
                 RaisedButton(
-                  child: Text("ReStart Game"),
+                  child: Text("Replay Game"),
                   onPressed: () {
                     _resetGame();
                   },
                 ),
 
+                SizedBox(width: 25,),
+
+                RaisedButton(
+                  child: Text("New Game"),
+                  onPressed: () {
+                    _startGame();
+                  },
+                ),
+
+                SizedBox(width: 25,),
+
+                Text("$_start", style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.normal, color: timerColor),),
+
+                SizedBox(width: 25,),
+
+                RaisedButton(
+                  child: Text("Apply"),
+                  onPressed: () {
+                    _startGame();
+                  },
+                ),
 
               ],
             ),
           ),
+
+//          // height: 0.20,
+//          Container(
+//            height: MediaQuery.of(context).size.height * 0.20,
+//            child: ListView.builder(
+//                scrollDirection: Axis.horizontal,
+//                itemCount: letterList.length,
+//                itemBuilder: (BuildContext context, int index) {
+//                  return Padding(
+//                    padding: const EdgeInsets.all(2.0),
+//                    child: Draggable(
+//                      data: letterIndexList[index],
+//                      child: Container(
+//                        width: 60.0,
+//                        height: 60.0,
+//                        child: Center(
+//                          child: Text(
+//                            letterList[index],
+//                            style:
+//                            TextStyle(color: Colors.white, fontSize: 45.0),
+//                          ),
+//                        ),
+//                        color:
+//                        letterSelected[index] == 0
+//                        ? Colors.pink
+//                        : Colors.white,
+//                      ),
+//                      feedback: Container(
+//                        width: 30.0,
+//                        height: 30.0,
+//                        child: Center(
+//                          child: Text(
+//                            letterList[index],
+//                            style:
+//                            TextStyle(color: Colors.white, fontSize: 22.0),
+//                          ),
+//                        ),
+//                        color: Colors.amber,
+//                      ),
+//                    ),
+//                  );
+//                }),
+//          ),
+
 
           // height: 0.20,
           Container(
             height: MediaQuery.of(context).size.height * 0.20,
             child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: letterList.length,
+                itemCount: letterList2.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Padding(
                     padding: const EdgeInsets.all(2.0),
-                    child: Draggable(
-                      data: letterIndexList[index],
+                    child: letterList2[index].letterStatus == 0
+                      ? Draggable(
+                      onDragCompleted: (){
+                        setState(() {
+                          if (dragCompleted == true) {
+                            letterList2[index].letterStatus = 1;
+                            dragCompleted = false;
+                          }
+                        });
+                      },
+                      data: letterList2[index].alphabetIndex,
                       child: Container(
                         width: 60.0,
                         height: 60.0,
                         child: Center(
                           child: Text(
-                            letterList[index],
+                            letterList2[index].letter,
                             style:
                             TextStyle(color: Colors.white, fontSize: 45.0),
                           ),
                         ),
-                        color: Colors.pink,
+                        color:
+                        letterList2[index].letterStatus == 0
+                            ? Colors.pink
+                            : Colors.white,
                       ),
                       feedback: Container(
                         width: 30.0,
                         height: 30.0,
                         child: Center(
                           child: Text(
-                            letterList[index],
+                            letterList2[index].letter,
                             style:
                             TextStyle(color: Colors.white, fontSize: 22.0),
                           ),
                         ),
                         color: Colors.amber,
                       ),
+                    )
+                      : Container(
+                      width: 60.0,
+                      height: 60.0,
+                      child: Center(
+                        child: Text(
+                          "",
+                          style:
+                          TextStyle(color: Colors.white, fontSize: 45.0),
+                        ),
+                      ),
+                      color:Colors.grey,
                     ),
                   );
                 }),
           ),
+
 
           // height: 0.30,
           SizedBox(height: MediaQuery.of(context).size.height * 0.30,),
@@ -230,6 +414,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       onAccept: (data) {
                         setState(() {
                           board[index] =alphabet[data];
+                          print(data);
+//                          letterSelected[data] = 1;
+//                        letterList2[2].letterStatus = 1;
+                          dragCompleted = true;
+
                         });
 
                       },
