@@ -1,5 +1,6 @@
-import 'package:anagram_quiz/letter.dart';
+import 'package:anagram_quiz/model/letter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 import 'dart:async';
 import 'dart:math';
@@ -63,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
   var alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+  var letterPoints = [1,3,3,2,1,4,2,4,1,8,5,1,3,1,1,3,10,1,1,1,1,4,4,8,4,10];
 
   List<String> wordList = ["DOMATES","PATATES","KARPUZ","KAVUN","PEYNIR","SOGUKSU","BALIK","BUZ","BARDAK","RAKI"];
 
@@ -77,6 +79,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
 
   List<Letter> letterList2 = [];
   bool dragCompleted = false;
+
+  int _totalWordPoint = 0;
 
   void generateWord(){
     var rng = new Random();
@@ -98,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
         if(letterList[i] == alphabet[j])
 
 
-          letterList2.add(new Letter(letter: letterList[i], alphabetIndex: j,letterStatus: 0));
+          letterList2.add(new Letter(letter: letterList[i], alphabetIndex: j, letterPoint: letterPoints[j] ,letterStatus: 0));
 
 
           solutionIndexList.add(j);
@@ -213,6 +217,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
   @override
   void initState() {
     super.initState();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
+
+
     _startGame();
   }
 
@@ -237,6 +248,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+
+                  Text("$_totalWordPoint", style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: timerColor),),
+
+                  SizedBox(width: 25,),
+
                   RaisedButton(
                     child: Text("Shuffle List"),
                     onPressed: () {
@@ -284,6 +300,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
             // height: 0.20,
             Container(
               height: MediaQuery.of(context).size.height * 0.20,
+//              width: MediaQuery.of(context).size.width * 0.80,
               child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: letterList2.length,
@@ -296,27 +313,54 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
                           setState(() {
                             if (dragCompleted == true) {
                               letterList2[index].letterStatus = 1;
+                              _totalWordPoint = _totalWordPoint + letterList2[index].letterPoint;
+
+
                               dragCompleted = false;
                             }
                           });
                         },
                         data: letterList2[index].alphabetIndex,
                         child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.amber[600],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.amber[900]),
+                          ),
                           width: 60.0,
                           height: 60.0,
                           child: Center(
-                            child: Text(
-                              letterList2[index].letter,
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 45.0),
-                            ),
+                            child: Stack(
+                              children: <Widget>[
+
+                                Positioned(
+                                  top: 5,
+                                  left: 5,
+                                  child: Text(
+                                    letterList2[index].letter,
+                                    style:
+                                    TextStyle(color: Colors.white, fontSize: 45.0),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 5,
+                                  right: 5,
+                                  child: Text(
+                                    letterList2[index].letterPoint.toString(),
+                                    style:
+                                    TextStyle(color: Colors.black, fontSize: 16.0, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            )
                           ),
-                          color:
-                          letterList2[index].letterStatus == 0
-                              ? Colors.pink
-                              : Colors.white,
+//                          color:
+//                          letterList2[index].letterStatus == 0
+//                              ? Colors.pink
+//                              : Colors.white,
                         ),
                         feedback: Container(
+
                           width: 30.0,
                           height: 30.0,
                           child: Center(
@@ -330,6 +374,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
                         ),
                       )
                         : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.amber[900]),
+                        ),
                         width: 60.0,
                         height: 60.0,
                         child: Center(
@@ -339,7 +388,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
                             TextStyle(color: Colors.white, fontSize: 45.0),
                           ),
                         ),
-                        color:Colors.grey,
+//                        color:Colors.grey,
                       ),
                     );
                   }),
@@ -364,10 +413,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin, 
 
 
                           return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.amber[200],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey),
+                            ),
                             width: 60.0,
                             height: 60.0,
                             child: Center(child: Text(board[index], style: TextStyle(color: Colors.black, fontSize: 45.0),)),
-                            color: Colors.amber,
+//                            color: Colors.amber,
                           );
                         },
                         onWillAccept: (data) {
